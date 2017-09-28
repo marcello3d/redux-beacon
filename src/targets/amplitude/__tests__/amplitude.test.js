@@ -29,7 +29,7 @@ describe('Target: Amplitude', () => {
     setEventProperties: jest.fn(),
   };
 
-  window.amplitude = {
+  const amplitude = {
     getInstance: () => instanceMock,
     Identify: () => identityMock,
     Revenue: () => revenueMock,
@@ -37,13 +37,13 @@ describe('Target: Amplitude', () => {
   };
 
   it('does not call any service when hitType is undefined', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: undefined,
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     Object.keys(app).forEach((key) => {
       expect(app[key]).not.toHaveBeenCalled();
@@ -51,20 +51,20 @@ describe('Target: Amplitude', () => {
   });
 
   it('sets a user id when the setUserId hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'setUserId',
       userId: 42,
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.setUserId).toHaveBeenCalledWith(evts[0].userId);
   });
 
   it('sets user props when the setUserProperties hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'setUserProperties',
@@ -73,25 +73,25 @@ describe('Target: Amplitude', () => {
       },
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.setUserProperties).toHaveBeenCalledWith(evts[0].userProperties);
   });
 
   it('clears props when the clearUserProperties hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'clearUserProperties',
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.clearUserProperties).toHaveBeenCalled();
   });
 
   it('logs an event when the logEvent hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'logEvent',
@@ -106,7 +106,7 @@ describe('Target: Amplitude', () => {
       },
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.logEvent).toHaveBeenCalledWith(evts[0].eventType, undefined);
     expect(app.logEvent).toHaveBeenCalledWith(
@@ -116,7 +116,7 @@ describe('Target: Amplitude', () => {
   });
 
   it('sets group info when the setGroup hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'setGroup',
@@ -124,7 +124,7 @@ describe('Target: Amplitude', () => {
       groupName: 15,
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.setGroup).toHaveBeenCalledWith(
       evts[0].groupType,
@@ -133,45 +133,45 @@ describe('Target: Amplitude', () => {
   });
 
   it('resets deviceId when the regenerateDeviceId hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'regenerateDeviceId',
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.regenerateDeviceId).toHaveBeenCalled();
   });
 
   it('stops tracking when the setOptOut hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'setOptOut',
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.setOptOut).toHaveBeenCalled();
   });
 
   it('sets version name when the setVersionName hitType is specified', () => {
-    const app = window.amplitude.getInstance();
+    const app = amplitude.getInstance();
 
     const evts = [{
       hitType: 'setVersionName',
       versionName: '1.12.3',
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(app.setVersionName).toHaveBeenCalledWith(evts[0].versionName);
   });
 
   it('builds an identity when the identify hitType is specified', () => {
-    const app = window.amplitude.getInstance();
-    const identity = new window.amplitude.Identify();
+    const app = amplitude.getInstance();
+    const identity = new amplitude.Identify();
 
     const evts = [{
       hitType: 'identify',
@@ -195,7 +195,7 @@ describe('Target: Amplitude', () => {
       },
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     Object.keys(evts[0].set).forEach((k) => {
       expect(identity.set).toHaveBeenCalledWith(k, evts[0].set[k]);
@@ -219,8 +219,8 @@ describe('Target: Amplitude', () => {
   });
 
   it('tracks revenue when the logRevenueV2 hitType is specified', () => {
-    const app = window.amplitude.getInstance();
-    const revenue = new window.amplitude.Revenue();
+    const app = amplitude.getInstance();
+    const revenue = new amplitude.Revenue();
 
     const evts = [{
       hitType: 'logRevenueV2',
@@ -233,7 +233,7 @@ describe('Target: Amplitude', () => {
       },
     }];
 
-    Amplitude(evts);
+    Amplitude(evts, amplitude);
 
     expect(revenue.setProductId).toHaveBeenCalledWith(evts[0].productId);
     expect(revenue.setPrice).toHaveBeenCalledWith(evts[0].price);
@@ -241,5 +241,55 @@ describe('Target: Amplitude', () => {
     expect(revenue.setRevenueType).toHaveBeenCalledWith(evts[0].revenueType);
     expect(revenue.setEventProperties).toHaveBeenCalledWith(evts[0].eventProperties);
     expect(app.logRevenueV2).toHaveBeenCalled();
+  });
+
+  it('logs events when window.amplitude is available', () => {
+    const app = amplitude.getInstance();
+
+    const evts = [{
+      hitType: 'logEvent',
+      eventType: 'New Banner – Exposure',
+    }, {
+      hitType: 'logEvent',
+      eventType: 'New Banner – Exposure',
+      eventProperties: {
+        company: 'Rangle.io',
+        showText: false,
+        color: 'blue',
+      },
+    }];
+
+    window.amplitude = amplitude;
+    Amplitude(evts);
+    delete window.amplitude;
+
+    expect(app.logEvent).toHaveBeenCalledWith(evts[0].eventType, undefined);
+    expect(app.logEvent).toHaveBeenCalledWith(
+      evts[1].eventType,
+      evts[1].eventProperties
+    );
+  });
+
+  it('does not log events when window.amplitude is unavailable', () => {
+    const app = amplitude.getInstance();
+
+    const evts = [{
+      hitType: 'logEvent',
+      eventType: 'New Banner – Exposure',
+    }, {
+      hitType: 'logEvent',
+      eventType: 'New Banner – Exposure',
+      eventProperties: {
+        company: 'Rangle.io',
+        showText: false,
+        color: 'blue',
+      },
+    }];
+
+    app.logEvent.mockReset();
+
+    Amplitude(evts);
+
+    expect(app.logEvent).not.toHaveBeenCalled();
   });
 });

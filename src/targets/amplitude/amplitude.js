@@ -1,12 +1,15 @@
 /**
  * A function that sends an event to amplitude
  */
-function sendAmplitudeEvent(events) {
-  if (!window || !window.amplitude) {
+function sendAmplitudeEvent(events, amplitude) {
+  if (!amplitude && window) {
+    amplitude = window.amplitude;
+  }
+  if (!amplitude) {
     return;
   }
 
-  const app = window.amplitude.getInstance();
+  const app = amplitude.getInstance();
   let identity;
   let revenue;
 
@@ -37,7 +40,7 @@ function sendAmplitudeEvent(events) {
         app.setVersionName(event.versionName);
         break;
       case 'identify':
-        identity = new window.amplitude.Identify();
+        identity = new amplitude.Identify();
 
         Object.keys(event).forEach((op) => {
           const args = event[op];
@@ -91,7 +94,7 @@ function sendAmplitudeEvent(events) {
         app.identify(identity);
         break;
       case 'logRevenueV2':
-        revenue = new window.amplitude.Revenue();
+        revenue = new amplitude.Revenue();
 
         Object.keys(event).forEach((attr) => {
           const val = event[attr];
